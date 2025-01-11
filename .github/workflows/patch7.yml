@@ -46,7 +46,7 @@ jobs:
         python-version: '3.11' 
 
     - name: Get latest routeros version
-      id: get_latest
+      id: 7.15.3
       run: |
         echo $(uname -a)
         LATEST_VERSION=$(wget -nv -O - https://download.mikrotik.com/routeros/NEWESTa7.${{ matrix.channel }} | cut -d ' ' -f1)
