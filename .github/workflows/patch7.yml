@@ -15,38 +15,31 @@ env:
   CUSTOM_LICENSE_PUBLIC_KEY: 723A34A6E3300F23E4BAA06156B9327514AEC170732655F16E04C17928DD770F
 
 jobs:
-  Set_BuildTime:
-    runs-on: ubuntu-22.04
-    outputs:
-      BUILD_TIME: ${{ steps.set_buildtime.outputs.BUILD_TIME }}
-    steps:
-      - name: Set build time
-        id: set_buildtime
-        run: echo "BUILD_TIME=$(date +'%s')" >> $GITHUB_OUTPUT
-
   Patch_RouterOS:
-    needs: Set_BuildTime
     runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        arch: [x86]
-        channel: [stable]
     env:
-      TZ: 'Asia/Dhaka'
-      LATEST_VERSION: "7.15.3"
-      ARCH: ""
+      CHANNEL: "stable" # You can modify this to other channels if necessary
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-        
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11' 
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Get latest routeros version
-      id: get_latest
+      - name: Set specified version
+        id: set_version
+        run: |
+          if [ -z "${{ github.event.inputs.version }}" ]; then
+            echo "No version provided. Using default version 7.15.3."
+            echo "LATEST_VERSION=7.15.3" >> $GITHUB_ENV
+          else
+            echo "Specified version: ${{ github.event.inputs.version }}"
+            echo "LATEST_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          fi
+
+      - name: Print selected version
+        run: |
+          echo "Selected RouterOS Version: ${LATEST_VERSION}"
+
+      - name: Fetch version-specific files
       run: |
         echo $(uname -a)
         LATEST_VERSION=$(wget -nv -O - https://download.mikrotik.com/routeros/NEWESTa7.${{ matrix.channel }} | cut -d ' ' -f1)
