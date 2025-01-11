@@ -30,9 +30,9 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        channel: [long-term,stable]
+        channel: [stable]
     env:
-      TZ: 'Asia/Shanghai'
+      TZ: 'Asia/Dhaka'
       LATEST_VERSION: ""
     steps:
     - name: Checkout repository
