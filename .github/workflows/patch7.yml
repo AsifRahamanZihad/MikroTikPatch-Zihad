@@ -15,60 +15,66 @@ env:
   CUSTOM_LICENSE_PUBLIC_KEY: 723A34A6E3300F23E4BAA06156B9327514AEC170732655F16E04C17928DD770F
 
 jobs:
-  patch:
-    runs-on: ubuntu-latest
+  Set_BuildTime:
+    runs-on: ubuntu-22.04
+    outputs:
+      BUILD_TIME: ${{ steps.set_buildtime.outputs.BUILD_TIME }}
+    steps:
+      - name: Set build time
+        id: set_buildtime
+        run: echo "BUILD_TIME=$(date +'%s')" >> $GITHUB_OUTPUT
+
+  Patch_RouterOS:
+    needs: Set_BuildTime
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        arch: [x86, arm, arm64, mipsbe, mmips, smips, tile, ppc]
+        arch: [x86]
+        channel: [stable]
+    env:
+      TZ: 'Asia/Shanghai'
+      LATEST_VERSION: ""
+      ARCH: ""
 
     steps:
-    - name: Checkout
+    - name: Checkout repository
       uses: actions/checkout@v4
-
-    - name: Setup Python
+        
+    - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.x'
+        python-version: '3.11' 
 
-    - name: Get latest version
+    - name: Get latest routeros version
       id: get_latest
       run: |
         echo $(uname -a)
-        NEWEST=$(curl -s https://download.mikrotik.com/routeros/NEWESTa7.stable)
-        LATEST_VERSION=$(echo "$NEWEST" | cut -d' ' -f1)
-        BUILD_TIME=$(echo "$NEWEST" | cut -d' ' -f2)
-        echo Latest Version: $LATEST_VERSION
-        echo Build Time: $BUILD_TIME
-        _LATEST_VERSION=$(cat latest7.txt | cut -d ' ' -f1)
-        if [ "$_LATEST_VERSION" == "$LATEST_VERSION" ]; then
-          echo "No new version found"
-          echo "has_new_version=false" >> $GITHUB_OUTPUT
-          exit 0
+        LATEST_VERSION=$(wget -nv -O - https://download.mikrotik.com/routeros/NEWESTa7.${{ matrix.channel }} | cut -d ' ' -f1)
+        echo Latest Version:$LATEST_VERSION
+        if [ "${{ github.event_name }}" == "schedule" ]; then
+          _LATEST_VERSION=$(wget -nv -O - https://download.mikrotik.com/routeros/NEWESTa7.${{ matrix.channel }} | cut -d ' ' -f1)
+          if [ "$_LATEST_VERSION" == "$LATEST_VERSION" ]; then
+            echo "No new version found"
+            echo "has_new_version=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
         fi
         echo "has_new_version=true" >> $GITHUB_OUTPUT
-        curl -s -o CHANGELOG https://download.mikrotik.com/routeros/$LATEST_VERSION/CHANGELOG
+        BUILD_TIME=${{ needs.Set_BuildTime.outputs.BUILD_TIME }}
+        echo Build Time:$BUILD_TIME
+        wget -nv -O CHANGELOG https://download.mikrotik.com/routeros/$LATEST_VERSION/CHANGELOG
         cat CHANGELOG
-        echo "NEWEST=${NEWEST}" >> $GITHUB_ENV
         echo "LATEST_VERSION=${LATEST_VERSION}" >> $GITHUB_ENV
+        echo "BUILD_TIME=${BUILD_TIME}" >> $GITHUB_ENV
         if [ "${{ matrix.arch }}" == "x86" ]; then
           ARCH=''
-        elif [ "${{ matrix.arch }}" == "arm" ]; then
-          ARCH='-arm'
+          echo "ARCH=$ARCH" >> $GITHUB_ENV
         elif [ "${{ matrix.arch }}" == "arm64" ]; then
           ARCH='-arm64'
-        elif [ "${{ matrix.arch }}" == "mipsbe" ]; then
-          ARCH='-mipsbe'
-        elif [ "${{ matrix.arch }}" == "mmips" ]; then
-          ARCH='-mmips'
-        elif [ "${{ matrix.arch }}" == "smips" ]; then
-          ARCH='-smips'
-        elif [ "${{ matrix.arch }}" == "tile" ]; then
-          ARCH='-tile'
-        elif [ "${{ matrix.arch }}" == "ppc" ]; then
-          ARCH='-ppc'
+          echo "ARCH=$ARCH" >> $GITHUB_ENV
         fi
-        echo "ARCH=$ARCH" >> $GITHUB_ENV
         sudo apt-get update > /dev/null
+
 
     - name: Cache mikrotik-${{ env.LATEST_VERSION }}${{ env.ARCH }}.iso
       if: steps.get_latest.outputs.has_new_version == 'true' && (matrix.arch == 'x86' || matrix.arch == 'arm64')
