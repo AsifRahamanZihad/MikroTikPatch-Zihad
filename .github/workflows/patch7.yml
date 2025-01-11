@@ -1,4 +1,5 @@
-name: Patch v7
+
+name: Patch v6
 
 on:
   workflow_dispatch:
@@ -13,7 +14,7 @@ env:
   CUSTOM_NPK_SIGN_PUBLIC_KEY: 28F886E32C141123126CFBCAD56766E99D1720CEB1F12BE2468BEBE7662FBEDB
   CUSTOM_LICENSE_PRIVATE_KEY: 9DBC845E9018537810FDAE62824322EEE1B12BAD81FCA28EC295FB397C61CE0B
   CUSTOM_LICENSE_PUBLIC_KEY: 723A34A6E3300F23E4BAA06156B9327514AEC170732655F16E04C17928DD770F
-  LATEST_VERSION: "7.15.3"
+  LATEST_VERSION: "7.1"
   
 jobs:
   Set_BuildTime:
@@ -33,7 +34,7 @@ jobs:
         arch: [x86]
         channel: [stable]
     env:
-      TZ: 'Asia/Shanghai'
+      TZ: 'Asia/Dhaka'
       LATEST_VERSION: ""
       ARCH: ""
 
@@ -50,10 +51,10 @@ jobs:
       id: get_latest
       run: |
         echo $(uname -a)
-        LATEST_VERSION="7.15.3"
+        LATEST_VERSION="7.1"
         echo Latest Version:$LATEST_VERSION
         if [ "${{ github.event_name }}" == "schedule" ]; then
-          _LATEST_VERSION="7.15.3"
+          _LATEST_VERSION="7.1"
           if [ "$_LATEST_VERSION" == "$LATEST_VERSION" ]; then
             echo "No new version found"
             echo "has_new_version=false" >> $GITHUB_OUTPUT
@@ -279,37 +280,6 @@ jobs:
         sudo rm chr-$LATEST_VERSION$ARCH-patched.vdi
         sudo rm chr-$LATEST_VERSION$ARCH-patched.img
 
-    - name: Cache NetInstall ${{ env.LATEST_VERSION }}
-      if: steps.get_latest.outputs.has_new_version == 'true' && matrix.arch == 'x86'
-      id: cache_netinstall
-      uses: actions/cache@v4
-      with:
-        path: |
-          netinstall.zip
-          netinstall64.zip
-          netinstall.tar.gz
-        key: netinstall-${{ env.LATEST_VERSION }}
-
-    - name: Get netinstall ${{ env.LATEST_VERSION }}
-      if: steps.get_latest.outputs.has_new_version == 'true' && matrix.arch == 'x86' && steps.cache_netinstall.outputs.cache-hit != 'true'
-      run: |
-        sudo curl -s -o netinstall.zip https://download.mikrotik.com/routeros/$LATEST_VERSION/netinstall-$LATEST_VERSION.zip
-        sudo curl -s -o netinstall64.zip https://download.mikrotik.com/routeros/$LATEST_VERSION/netinstall64-$LATEST_VERSION.zip
-        sudo curl -s -o netinstall.tar.gz https://download.mikrotik.com/routeros/$LATEST_VERSION/netinstall-$LATEST_VERSION.tar.gz
-
-    - name: Patch netinstall ${{ env.LATEST_VERSION }}
-      if: steps.get_latest.outputs.has_new_version == 'true' && matrix.arch == 'x86'
-      run: |
-        sudo unzip netinstall.zip netinstall.exe
-        sudo -E python3 patch.py netinstall netinstall.exe
-        sudo zip netinstall-$LATEST_VERSION-patched.zip ./netinstall.exe
-        sudo unzip netinstall64.zip netinstall64.exe
-        sudo -E python3 patch.py netinstall netinstall64.exe
-        sudo zip netinstall64-$LATEST_VERSION-patched.zip ./netinstall64.exe
-        sudo tar -xvf netinstall.tar.gz
-        sudo -E python3 patch.py netinstall netinstall-cli
-        sudo tar -czvf netinstall-$LATEST_VERSION-patched.tar.gz ./netinstall-cli
-
     - name: Cache routeros-${{ env.LATEST_VERSION }}${{ env.ARCH }}.npk & all_packages${{ env.ARCH }}-${{ env.LATEST_VERSION }}.zip
       if: steps.get_latest.outputs.has_new_version == 'true' && matrix.arch != 'x86'
       id: cache_routeros_npk
@@ -341,16 +311,6 @@ jobs:
         sudo zip ../all_packages$ARCH-$LATEST_VERSION-patched.zip *.npk
         cd ..
         sudo rm -rf ./all_packages$ARCH-$LATEST_VERSION
-
-    - name: Update latest version
-      if: steps.get_latest.outputs.has_new_version == 'true' && matrix.arch == 'x86'
-      run: |
-        echo $NEWEST > latest7.txt
-        git config user.name "github-actions[bot]"
-        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git add latest7.txt
-        git commit -m "Update latest version"
-        git push
 
     - name: Create Release tag ${{ env.LATEST_VERSION }}
       if: steps.get_latest.outputs.has_new_version == 'true'
