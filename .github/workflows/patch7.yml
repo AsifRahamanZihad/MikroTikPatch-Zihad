@@ -13,33 +13,25 @@ env:
   CUSTOM_NPK_SIGN_PUBLIC_KEY: 28F886E32C141123126CFBCAD56766E99D1720CEB1F12BE2468BEBE7662FBEDB
   CUSTOM_LICENSE_PRIVATE_KEY: 9DBC845E9018537810FDAE62824322EEE1B12BAD81FCA28EC295FB397C61CE0B
   CUSTOM_LICENSE_PUBLIC_KEY: 723A34A6E3300F23E4BAA06156B9327514AEC170732655F16E04C17928DD770F
-
+  LATEST_VERSION: "7.15.3"
 jobs:
-  Patch_RouterOS:
-    runs-on: ubuntu-22.04
-    env:
-      CHANNEL: "stable" # You can modify this to other channels if necessary
+  patch:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [x86, arm, arm64, mipsbe, mmips, smips, tile, ppc]
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      - name: Set specified version
-        id: set_version
-        run: |
-          if [ -z "${{ github.event.inputs.version }}" ]; then
-            echo "No version provided. Using default version 7.15.3."
-            echo "LATEST_VERSION=7.15.3" >> $GITHUB_ENV
-          else
-            echo "Specified version: ${{ github.event.inputs.version }}"
-            echo "LATEST_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
-          fi
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
 
-      - name: Print selected version
-        run: |
-          echo "Selected RouterOS Version: ${LATEST_VERSION}"
-
-      - name: Fetch version-specific files
+    - name: Get latest version
+      id: get_latest
       run: |
         echo $(uname -a)
         LATEST_VERSION=$(wget -nv -O - https://download.mikrotik.com/routeros/NEWESTa7.${{ matrix.channel }} | cut -d ' ' -f1)
