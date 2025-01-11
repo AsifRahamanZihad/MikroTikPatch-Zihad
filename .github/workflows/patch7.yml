@@ -15,22 +15,37 @@ env:
   CUSTOM_LICENSE_PUBLIC_KEY: 723A34A6E3300F23E4BAA06156B9327514AEC170732655F16E04C17928DD770F
   LATEST_VERSION: "7.15.3"
 jobs:
-  patch:
-    runs-on: ubuntu-latest
+  Set_BuildTime:
+    runs-on: ubuntu-22.04
+    outputs:
+      BUILD_TIME: ${{ steps.set_buildtime.outputs.BUILD_TIME }}
+    steps:
+      - name: Set build time
+        id: set_buildtime
+        run: echo "BUILD_TIME=$(date +'%s')" >> $GITHUB_OUTPUT
+
+  Patch_RouterOS:
+    needs: Set_BuildTime
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        arch: [x86, arm, arm64, mipsbe, mmips, smips, tile, ppc]
+        arch: [x86,mmips]
+        channel: [stable]
+    env:
+      TZ: 'Asia/Shanghai'
+      LATEST_VERSION: ""
+      ARCH: ""
 
     steps:
-    - name: Checkout
+    - name: Checkout repository
       uses: actions/checkout@v4
-
-    - name: Setup Python
+        
+    - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.x'
+        python-version: '3.11' 
 
-    - name: Get latest version
+    - name: Get latest routeros version
       id: get_latest
       run: |
         echo $(uname -a)
@@ -59,7 +74,6 @@ jobs:
           echo "ARCH=$ARCH" >> $GITHUB_ENV
         fi
         sudo apt-get update > /dev/null
-
 
     - name: Cache mikrotik-${{ env.LATEST_VERSION }}${{ env.ARCH }}.iso
       if: steps.get_latest.outputs.has_new_version == 'true' && (matrix.arch == 'x86' || matrix.arch == 'arm64')
