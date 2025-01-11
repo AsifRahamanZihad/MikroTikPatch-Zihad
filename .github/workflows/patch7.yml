@@ -30,7 +30,7 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: "7.15.3"
+    - name: Get latest version
       id: get_latest
       run: |
         echo $(uname -a)
