@@ -141,13 +141,11 @@ jobs:
                       -no-emul-boot \
                       -R -J \
                       ./new_iso
-        fi
-        sudo rm -rf ./efiboot
         sudo mkdir ./all_packages
         sudo cp ./new_iso/*.npk ./all_packages/
         sudo rm -rf ./new_iso
         cd ./all_packages
-        sudo zip ../all_packages-$7.14.3.zip *.npk
+        sudo zip ../all_packages-x86-$LATEST_VERSION.zip *.npk
         cd ..
 
     - name: Cache refind
