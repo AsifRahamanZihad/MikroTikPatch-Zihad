@@ -147,7 +147,7 @@ jobs:
         sudo cp ./new_iso/*.npk ./all_packages/
         sudo rm -rf ./new_iso
         cd ./all_packages
-        sudo zip ../all_packages-${{ matrix.arch }}-$LATEST_VERSION.zip *.npk
+        sudo zip ../all_packages-$7.14.3.zip *.npk
         cd ..
 
     - name: Cache refind
