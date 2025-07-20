@@ -143,11 +143,11 @@ jobs:
                       ./new_iso
         fi
         sudo rm -rf ./efiboot
-        sudo mkdir ./all_packages_iso$ARCH-$LATEST_VERSION
-        sudo cp ./new_iso/*.npk ./all_packages_iso$ARCH-$LATEST_VERSION/
+        sudo mkdir ./all_packages
+        sudo cp ./new_iso/*.npk ./all_packages/
         sudo rm -rf ./new_iso
-        cd ./all_packages_iso$ARCH-$LATEST_VERSION
-        sudo zip ../all_packages$ARCH-$LATEST_VERSION-patched.zip *.npk
+        cd ./all_packages
+        sudo zip ../all_packages-${{ matrix.arch }}-$LATEST_VERSION.zip *.npk
         cd ..
 
     - name: Cache refind
