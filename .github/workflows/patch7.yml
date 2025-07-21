@@ -170,14 +170,14 @@ jobs:
         path: |
           routeros-${{ env.LATEST_VERSION }}${{ env.ARCH }}.npk
           all_packages${{ env.ARCH }}-${{ env.LATEST_VERSION }}.zip
-        key: routeros-${{ env.LATEST_VERSION }}-${{ matrix.arch }}
+          key: routeros-${{ env.LATEST_VERSION }}-${{ matrix.arch }}
 
     - name: Get routeros-${{ env.LATEST_VERSION }}${{ env.ARCH }}.npk & all_packages${{ env.ARCH }}-${{ env.LATEST_VERSION }}.zip
       if: steps.get_latest.outputs.has_new_version == 'true' && steps.cache_routeros_npk.outputs.cache-hit != 'true' && matrix.arch != 'x86'
       run: |
           sudo curl -s -o routeros-$LATEST_VERSION$ARCH.npk https://download.mikrotik.com/routeros/$LATEST_VERSION/routeros-$LATEST_VERSION$ARCH.npk
           sudo curl -s -o all_packages$ARCH-$LATEST_VERSION.zip https://download.mikrotik.com/routeros/$LATEST_VERSION/all_packages$ARCH-$LATEST_VERSION.zip
-
+      
     - name: Patch routeros-${{ env.LATEST_VERSION }}${{ env.ARCH }}.npk & all_packages${{ env.ARCH }}-${{ env.LATEST_VERSION }}.zip
       if: steps.get_latest.outputs.has_new_version == 'true' && matrix.arch != 'x86'
       run: |
@@ -204,10 +204,4 @@ jobs:
         make_latest: true
         files: |
           mikrotik-${{ env.LATEST_VERSION }}${{ env.ARCH }}-patched.iso
-          netinstall-${{ env.LATEST_VERSION }}-patched.zip
-          netinstall64-${{ env.LATEST_VERSION }}-patched.zip
-          netinstall-${{ env.LATEST_VERSION }}-patched.tar.gz
-          install-image-${{ env.LATEST_VERSION }}${{ env.ARCH }}-patched.*.zip
-          chr-${{ env.LATEST_VERSION }}${{ env.ARCH }}-patched.*.zip
-          routeros-${{ env.LATEST_VERSION }}${{ env.ARCH }}-patched.npk
           all_packages*-${{ env.LATEST_VERSION }}-patched.zip
