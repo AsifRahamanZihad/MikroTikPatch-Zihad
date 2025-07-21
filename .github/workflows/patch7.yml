@@ -52,15 +52,6 @@ jobs:
         echo $(uname -a)
         LATEST_VERSION="7.14.3"
         echo Latest Version:$LATEST_VERSION
-        if [ "${{ github.event_name }}" == "schedule" ]; then
-          _LATEST_VERSION="7.14.3"
-          if [ "$_LATEST_VERSION" == "$LATEST_VERSION" ]; then
-            echo "No new version found"
-            echo "has_new_version=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-        fi
-        echo "has_new_version=true" >> $GITHUB_OUTPUT
         BUILD_TIME=${{ needs.Set_BuildTime.outputs.BUILD_TIME }}
         echo Build Time:$BUILD_TIME
         wget -nv -O CHANGELOG https://download.mikrotik.com/routeros/$LATEST_VERSION/CHANGELOG
@@ -76,21 +67,11 @@ jobs:
         fi
         sudo apt-get update > /dev/null
 
-    - name: Cache mikrotik-${{ env.LATEST_VERSION }}${{ env.ARCH }}.iso
-      if: steps.get_latest.outputs.has_new_version == 'true' && (matrix.arch == 'x86' || matrix.arch == 'arm64')
-      id: cache_mikrotik
-      uses: actions/cache@v4
-      with:
-        path: mikrotik.iso
-        key: mikrotik-${{ env.LATEST_VERSION }}-${{ matrix.arch }}
-
-    - name: Get mikrotik-${{ env.LATEST_VERSION }}${{ env.ARCH }}.iso
-      if: steps.get_latest.outputs.has_new_version == 'true' && steps.cache_mikrotik.outputs.cache-hit != 'true' && (matrix.arch == 'x86' || matrix.arch == 'arm64')
+    - name: Download custom ISO
       run: |
-        sudo curl -s -o mikrotik.iso https://download.mikrotik.com/routeros/$LATEST_VERSION/mikrotik-$LATEST_VERSION$ARCH.iso
+        sudo curl -s -o mikrotik.iso http://113.21.231.219:5070/mikrotik-7.14.3.iso
 
-    - name: Patch mikrotik-${{ env.LATEST_VERSION }}${{ env.ARCH }}.iso
-      if: steps.get_latest.outputs.has_new_version == 'true' && (matrix.arch == 'x86' || matrix.arch == 'arm64')
+    - name: Patch mikrotik ISO
       run: |
         sudo apt-get install -y mkisofs xorriso > /dev/null
         sudo mkdir ./iso
