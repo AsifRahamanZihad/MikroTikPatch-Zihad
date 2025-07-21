@@ -131,7 +131,6 @@ jobs:
         cd ../
         
     - name: Create Release tag ${{ env.LATEST_VERSION }}
-      if: steps.get_latest.outputs.has_new_version == 'true'
       uses: softprops/action-gh-release@v2
       with:
         name: "RouterOS ${{ env.LATEST_VERSION }}"
@@ -140,10 +139,4 @@ jobs:
         make_latest: true
         files: |
           mikrotik-${{ env.LATEST_VERSION }}${{ env.ARCH }}-patched.iso
-          netinstall-${{ env.LATEST_VERSION }}-patched.zip
-          netinstall64-${{ env.LATEST_VERSION }}-patched.zip
-          netinstall-${{ env.LATEST_VERSION }}-patched.tar.gz
-          install-image-${{ env.LATEST_VERSION }}${{ env.ARCH }}-patched.*.zip
-          chr-${{ env.LATEST_VERSION }}${{ env.ARCH }}-patched.*.zip
-          routeros-${{ env.LATEST_VERSION }}${{ env.ARCH }}-patched.npk
           all_packages*-${{ env.LATEST_VERSION }}-patched.zip
