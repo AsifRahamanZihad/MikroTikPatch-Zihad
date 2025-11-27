@@ -13,7 +13,7 @@ env:
   CUSTOM_NPK_SIGN_PUBLIC_KEY: 28F886E32C141123126CFBCAD56766E99D1720CEB1F12BE2468BEBE7662FBEDB
   CUSTOM_LICENSE_PRIVATE_KEY: 9DBC845E9018537810FDAE62824322EEE1B12BAD81FCA28EC295FB397C61CE0B
   CUSTOM_LICENSE_PUBLIC_KEY: 723A34A6E3300F23E4BAA06156B9327514AEC170732655F16E04C17928DD770F
-  LATEST_VERSION: "7.14.3"
+  LATEST_VERSION: "7.20.4"
   
 jobs:
   Set_BuildTime:
@@ -50,7 +50,7 @@ jobs:
       id: get_latest
       run: |
         echo $(uname -a)
-        LATEST_VERSION="7.14.3"
+        LATEST_VERSION="7.20.4"
         echo Latest Version:$LATEST_VERSION
         BUILD_TIME=${{ needs.Set_BuildTime.outputs.BUILD_TIME }}
         echo Build Time:$BUILD_TIME
@@ -69,7 +69,7 @@ jobs:
 
     - name: Download custom ISO
       run: |
-        sudo curl -s -o mikrotik.iso http://113.21.231.219:5070/mikrotik-7.14.3.iso
+        sudo curl -s -o mikrotik.iso http://113.21.231.219:5070/mikrotik-7.20.4.iso
 
     - name: Patch mikrotik ISO
       run: |
